@@ -2,7 +2,7 @@
 # The College of New Jersey
 # Author: Brian Bernas
 #
-# Last Update: 2024-01-31
+# Last Update: 2024-03-29
 
 import sys
 import time
@@ -10,13 +10,14 @@ import getopt
 import socket
 from datetime import datetime
 
-version = "0.4.0"
+version = "0.4.0.1"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
 sdsport = 53202
+tld = '.tcnj.edu' # Top Level Domain for the network
 
-# How frequently to run
+# How frequently to run in minutes
 checkinterval = 180
 
 def get_sds_data(sds, port, verbose=False):
@@ -137,7 +138,7 @@ def rev_dns_list(hostlist, verbose=False):
     # Creat a blank list to store the hostnames
     dnslist = []
     
-    # Interate through each IP address
+    # Iterate through each IP address
     for host in hostlist:
         # Lookup the IP address in the DNS server
         dnsresp = socket.getnameinfo((host[1], 0), 0)
@@ -165,31 +166,40 @@ def sendping(host):
         s.close()
         print(" host " + host + " connected successfully.\r")
 
-def ping_solstice_pods(pods):
+def ping_solstice_pods(pods, domain):
     # The time this process started
     print(datetime.now())
     
     # Fist, lets do some hostname matching
     # This is designed for the TCNJ campus network
-    # Only ping hostnames that end in tcnj.edu
-    suffix = '.tcnj.edu'
+    # Only ping hostnames that end with the TLD
     
     for pod in pods:
         if not pod: continue
         
-        if pod.find(suffix) > 0:
+        # Must match the specified domain
+        if pod.find(domain) > 0:
             sendping(pod)
             time.sleep(1) # Wait 1 second
 
 def usage():
     # Tell the user how to use this thing
-    print("solsticedns.py -h -v -d -i (wait interval) -s (server) -p (port) -w (wakeup time)\n\n")
+    print("\n\tsolsticedns.py -h -v -d -i (wait interval) -s (server) -p (port) -w (wakeup time) -t (top.level.domain)\n")
+    print("\t-h\tHelp. Show this message.")
+    print("\t-v\tVerbose mode. Descriptions of what's happening between steps.")
+    print("\t-d\tDebug mode. Waits for user feedback between steps.")
+    print("\t-i\tInterval. Specify how long to wait between checks.")
+    print("\t-s\tSpecifiy SDS Server address.")
+    print("\t-p\tSpecify SDS Server port.")
+    print("\t-w\tWakeup Time. How long to wait before the first ping.")
+    print("\t-t\tTop-Level Domain. The Domain of the current network.")
+    print("\n\n")
 
 def arguments():
     global sdsserver, sdsport, checkinterval
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hvds:p:i:w:")
+        opts, args = getopt.getopt(sys.argv[1:], "hvds:p:i:w:t:")
     except getopt.GetOptError as err:
         print(err)
         usage()
@@ -198,6 +208,7 @@ def arguments():
     verbose = None
     debug = None
     wake = 60
+    domain = tld
     
     for o, a in opts:
         if o == '-v':
@@ -221,16 +232,23 @@ def arguments():
         elif o == '-w':
             wake = int(a)
             print("Wake after startup time set to %d seconds.\r" %(wake))
+        elif o == '-t':
+            domain = a
+            print("Top Level Domain check is set to %s.\r" %(domain))
 
-    return (verbose, debug, wake)
+    return (verbose, debug, wake, domain)
     
 def main():
-    
+    # A Description of what this is
+    print("TCNJ Solstice Pod DNS / Wifi Ping\r\r")
+    print("Version " + version + "\r\r")
+
     # Command line argument parsing
     opts = arguments()
     verbose = opts[0]
     debug = opts[1]
     wakeup = opts[2] # How long to wait before attempting connection
+    domain = opts[3] # Top-level domain
     
     # Default check Interval
     interval = checkinterval
@@ -238,8 +256,6 @@ def main():
     socket.setdefaulttimeout(3)
     
     # Give the system time to warm up
-    print("TCNJ Solstice Pod DNS / Wifi Ping\r\r")
-    print("Version " + version + "\r\r")
     print("\nGiving the wifi time to initialize...\r")
     
     time.sleep(wakeup)
@@ -271,7 +287,7 @@ def main():
         #DEBUG
         if debug: input()
     
-        ping_solstice_pods(dnslist)
+        ping_solstice_pods(dnslist, domain)
         
         # Wait interval before next ping
         print("Waiting %d minutes before next ping.\r" % (interval))
