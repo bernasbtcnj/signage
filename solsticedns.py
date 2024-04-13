@@ -10,7 +10,7 @@ import getopt
 import socket
 from datetime import datetime
 
-version = "0.4.0.1"
+version = "0.5"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
@@ -30,7 +30,10 @@ def get_sds_data(sds, port, verbose=False):
     
     # Max size of the data buffer. This may have to change as we add more hosts.
     # Or the data will have to be appended until all the data has been received
-    dsize = 4096
+    dsize = 1024
+    
+    # Maximum number of data acquisition loops
+    loopmax = 20
     
     # Blank byte-string to store the returned data
     data = b''
@@ -43,18 +46,30 @@ def get_sds_data(sds, port, verbose=False):
     sock.send(get_hex)
     time.sleep(1)
     
-    # Keep getting data until 'MSVPNG' is received
-    # This indicates that the SDS server has finished processing the
-    # Request and is ready for a new command
-    while 1:
+    # Keep getting data until the received data is smaller than the buffer
+    # Only acquire data for a set number of loops.
+    # Default is 20 cycles which equals about 250 pods
+    for acquire in range(loopmax):
         # Receive the data
-        msv = sock.recv(dsize)
-        data = data + msv
-        if data.find(b'MSVPNG'):
+        
+        # Wrapped in a try incase the server stops responding
+        try:
+            msv = sock.recv(dsize)
+            data = data + msv
+            
+            # If verbose / debugging is enabled then show the size of the SDS data
+            if verbose:
+                print("DATA SIZE: %d\n" %(len(data)))
+            
+            # If the data received is smaller than the buffer,
+            # that's probably the end of the data. End the loop
+            if (len(msv) < dsize):
+                break
+                
+        except:
+            print("Exception Break\n")
             break
             
-        # Wait 2 seconds between loop cycles
-        time.sleep(2)
     
     # Print the raw data if debugging is enabled
     if verbose:
