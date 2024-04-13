@@ -10,7 +10,7 @@ import getopt
 import socket
 from datetime import datetime
 
-version = "0.5"
+version = "0.5.1"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
@@ -32,8 +32,8 @@ def get_sds_data(sds, port, verbose=False):
     # Or the data will have to be appended until all the data has been received
     dsize = 1024
     
-    # Maximum number of data acquisition loops
-    loopmax = 20
+    # Run until the msv data received is smaller than the max
+    msvlen = dsize
     
     # Blank byte-string to store the returned data
     data = b''
@@ -49,7 +49,7 @@ def get_sds_data(sds, port, verbose=False):
     # Keep getting data until the received data is smaller than the buffer
     # Only acquire data for a set number of loops.
     # Default is 20 cycles which equals about 250 pods
-    for acquire in range(loopmax):
+    while msvlen == dsize:
         # Receive the data
         
         # Wrapped in a try incase the server stops responding
@@ -63,8 +63,7 @@ def get_sds_data(sds, port, verbose=False):
             
             # If the data received is smaller than the buffer,
             # that's probably the end of the data. End the loop
-            if (len(msv) < dsize):
-                break
+            msvlen = len(msv)
                 
         except:
             print("Exception Break\n")
