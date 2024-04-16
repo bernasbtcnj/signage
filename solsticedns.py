@@ -207,46 +207,63 @@ def usage():
     print("\n\n")
 
 def arguments():
+    # Use global variables
     global sdsserver, sdsport, checkinterval
     
+    # Sometimes the system doesn't properly return the arguments
+    # It will do, and do not, so at least try
     try:
+        # get the comand-line arguments
         opts, args = getopt.getopt(sys.argv[1:], "hvds:p:i:w:t:")
     except getopt.GetOptError as err:
+        # If the user entered something wrong,
+        # Try to tell them what they did wrong then exit
         print(err)
         usage()
         sys.exit(2)
     
+    # Variable options
     verbose = None
     debug = None
     wake = 60
     domain = tld
     
+    # Cycle through the options
     for o, a in opts:
+        # Verbose mode
         if o == '-v':
             verbose = True
             print("Verbose mode enabled.\r")
+        # Show help documentation
         elif o in ('-h', '--help'):
             usage()
             sys.exit()
+        # Debugging
         elif o == '-d':
             debug = True
             print("Debugging enabled.\r")
+        # Specify SDS server
         elif o == '-s':
             sdsserver = a
             print("SDS Server set to %s.\r" %(a))
+        # Specify port
         elif o == '-p':
             sdsport = int(a)
             print("SDS Port set to %d.\r" %(sdsport))
+        # Specify check interval
         elif o == '-i':
             checkinterval = int(a)
             print("Check interval set to %d minutes.\r" %(checkinterval))
+        # Specify wake-up time
         elif o == '-w':
             wake = int(a)
             print("Wake after startup time set to %d seconds.\r" %(wake))
+        # Specify top-level domain
         elif o == '-t':
             domain = a
             print("Top Level Domain check is set to %s.\r" %(domain))
 
+    # Send the options back as a tuple
     return (verbose, debug, wake, domain)
     
 def main():
