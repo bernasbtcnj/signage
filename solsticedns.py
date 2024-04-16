@@ -47,11 +47,8 @@ def get_sds_data(sds, port, verbose=False):
     time.sleep(1)
     
     # Keep getting data until the received data is smaller than the buffer
-    # Only acquire data for a set number of loops.
-    # Default is 20 cycles which equals about 250 pods
     while msvlen == dsize:
         # Receive the data
-        
         # Wrapped in a try incase the server stops responding
         try:
             msv = sock.recv(dsize)
