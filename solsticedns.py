@@ -16,6 +16,7 @@ version = "0.5.1"
 sdsserver = "mersivesds.lions.tcnj.edu"
 sdsport = 53202
 tld = '.tcnj.edu' # Top Level Domain for the network
+hostp = '-pod' # Indicator that this host is associated with a solstice pod
 
 # How frequently to run in minutes
 checkinterval = 180
@@ -185,12 +186,14 @@ def ping_solstice_pods(pods, domain):
     # This is designed for the TCNJ campus network
     # Only ping hostnames that end with the TLD
     
+    # Iterate through the list
     for pod in pods:
         if not pod: continue
         
         # Must match the specified domain
         if pod.find(domain) > 0:
             sendping(pod)
+            
             time.sleep(1) # Wait 1 second
 
 def usage():
@@ -214,7 +217,7 @@ def arguments():
     # It will do, and do not, so at least try
     try:
         # get the comand-line arguments
-        opts, args = getopt.getopt(sys.argv[1:], "hvds:p:i:w:t:")
+        opts, args = getopt.getopt(sys.argv[1:], "hveds:p:i:w:t:")
     except getopt.GetOptError as err:
         # If the user entered something wrong,
         # Try to tell them what they did wrong then exit
@@ -227,6 +230,7 @@ def arguments():
     debug = None
     wake = 60
     domain = tld
+    error = None
     
     # Cycle through the options
     for o, a in opts:
@@ -262,9 +266,12 @@ def arguments():
         elif o == '-t':
             domain = a
             print("Top Level Domain check is set to %s.\r" %(domain))
+        elif o == '-e':
+            error = True
+            print("Detailed connection error reporting is enabled.\r")
 
     # Send the options back as a tuple
-    return (verbose, debug, wake, domain)
+    return (verbose, debug, wake, domain, error)
     
 def main():
     # A Description of what this is
@@ -277,6 +284,7 @@ def main():
     debug = opts[1]
     wakeup = opts[2] # How long to wait before attempting connection
     domain = opts[3] # Top-level domain
+    error = opts[4] # Detailed error reporting
     
     # Default check Interval
     interval = checkinterval
@@ -316,6 +324,20 @@ def main():
         if debug: input()
     
         ping_solstice_pods(dnslist, domain)
+        
+        # Print an ammended detailed error report
+        # This helps with troubleshooting for network admins
+        # For TCNJ, this means the hostname is not in *-pod format
+        if error:
+            print('-' * 25)
+            print("ERROR REPORT")
+            print('-' * 25)
+            ei = 0
+            for dnshost in dnslist:
+                f = dnshost.find(hostp)
+                if (f == -1):
+                    print("%s : %s : %s\r" %(sdslist[ei][0], sdslist[ei][1], dnshost))
+                ei = ei + 1
         
         # Wait interval before next ping
         print("Waiting %d minutes before next ping.\r" % (interval))
