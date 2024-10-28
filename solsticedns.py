@@ -2,7 +2,7 @@
 # The College of New Jersey
 # Author: Brian Bernas
 #
-# Last Update: 2024-04-18
+# Last Update: 2024-10-28
 
 import sys
 import time
@@ -10,7 +10,7 @@ import getopt
 import socket
 from datetime import datetime
 
-version = "0.5.1"
+version = "0.5.2"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
@@ -198,10 +198,11 @@ def ping_solstice_pods(pods, domain):
 
 def usage():
     # Tell the user how to use this thing
-    print("\n\tsolsticedns.py -h -v -d -i (wait interval) -s (server) -p (port) -w (wakeup time) -t (top.level.domain)\n")
+    print("\n\tsolsticedns.py -h -v -d -e -i (wait interval) -s (server) -p (port) -w (wakeup time) -t (top.level.domain)\n")
     print("\t-h\tHelp. Show this message.")
     print("\t-v\tVerbose mode. Descriptions of what's happening between steps.")
     print("\t-d\tDebug mode. Waits for user feedback between steps.")
+    print("\t-e\tError Reporting. Displays a list of problematic hostnames.") 
     print("\t-i\tInterval. Specify how long to wait between checks.")
     print("\t-s\tSpecifiy SDS Server address.")
     print("\t-p\tSpecify SDS Server port.")
