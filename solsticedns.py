@@ -153,14 +153,14 @@ def rev_dns_list(hostlist, verbose=False):
     # Iterate through each IP address
     for host in hostlist:
         # Lookup the IP address in the DNS server
-        dnsresp = socket.getnameinfo((host[1], 0), 0)
+        fqdn = socket.getfqdn(host[1])
         
         # If one was found, add it to the list
-        if dnsresp[0]:
-            dnslist.append(dnsresp[0])
+        if fqdn:
+            dnslist.append(fqdn)
             
             if verbose:
-                print("%s :\t%s :\t%s\r" %(host[0], host[1], dnsresp[0]))
+                print("%s :\t%s :\t%s\r" %(host[0], host[1], fqdn))
     
     return dnslist
 
