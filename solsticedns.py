@@ -351,7 +351,7 @@ def main():
         ping_solstice_pods(dnslist, domain)
         
         # Now AirMedia devices
-        print("Pinging AirMedia Devices")
+        print("::::::Pinging AirMedia Devices::::::")
         airmedia_list = load_airmedia()
         ping_solstice_pods(airmedia_list, domain)
         
