@@ -8,9 +8,10 @@ import sys
 import time
 import getopt
 import socket
+import requests
 from datetime import datetime
 
-version = "0.5.2"
+version = "0.6.0 - April 2026"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
@@ -18,8 +19,11 @@ sdsport = 53202
 tld = '.tcnj.edu' # Top Level Domain for the network
 hostp = '-pod' # Indicator that this host is associated with a solstice pod
 
+# AirMedia variables
+gfile_id = '1egG0jfFJgccPHTEdv9Y3NawzJUvgpXPQ' #ID of file in public Google Drive
+
 # How frequently to run in minutes
-checkinterval = 180
+checkinterval = 120
 
 def get_sds_data(sds, port, verbose=False):
     # Connect to the Mersive SDS server and retrieve the host list
@@ -164,6 +168,25 @@ def rev_dns_list(hostlist, verbose=False):
     
     return dnslist
 
+def load_airmedia():
+    # Load the list of AirMedia devices
+    
+    # Get the url of the file based on the file ID
+    gfile_url = f'https://drive.google.com/uc?export=download&id={gfile_id}'
+    
+    # Attempt to load the file
+    response = requests.get(gfile_url)
+    
+    # If the request was successful, parse the data
+    if response.status_code == 200:
+        # Remove trailing data
+        items = response.text.strip().split('\r')
+        airmedia_data = [s.strip() for s in items]
+        return airmedia_data
+    else:
+        # Else, return nothing
+        return []
+        
 def sendping(host):
     # Wrapped in a try because these things are finicky
     # Port is fixed at 80 for now, but that may change
@@ -276,7 +299,8 @@ def arguments():
     
 def main():
     # A Description of what this is
-    print("TCNJ Solstice Pod DNS / Wifi Ping\r\r")
+    print("TCNJ Solstice Pod DNS / Wifi Ping.\r")
+    print("Now with AirMedia Support!!\r\r")
     print("Version " + version + "\r\r")
 
     # Command line argument parsing
@@ -325,6 +349,11 @@ def main():
         if debug: input()
     
         ping_solstice_pods(dnslist, domain)
+        
+        # Now AirMedia devices
+        print("Pinging AirMedia Devices")
+        airmedia_list = load_airmedia()
+        ping_solstice_pods(airmedia_list, domain)
         
         # Print an ammended detailed error report
         # This helps with troubleshooting for network admins
