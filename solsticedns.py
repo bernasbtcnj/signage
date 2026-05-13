@@ -2,7 +2,7 @@
 # The College of New Jersey
 # Author: Brian Bernas
 #
-# Last Update: 2024-10-28
+# Last Update: 2026-05-13
 
 import sys
 import time
@@ -11,7 +11,7 @@ import socket
 import requests
 from datetime import datetime
 
-version = "0.6.0 - April 2026"
+version = "0.6.01 - May 2026"
 
 # SDS Server host name and port
 sdsserver = "mersivesds.lions.tcnj.edu"
